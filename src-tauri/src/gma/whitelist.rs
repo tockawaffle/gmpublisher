@@ -182,45 +182,36 @@ const QUESTION_BYTE: u8 = b'?';
 const EXCLAMATION_BYTE: u8 = b'!';
 
 fn globber(wild: &str, str: &str) -> bool {
-	unsafe {
-		let mut cp: *const u8 = core::ptr::null();
-		let mut mp: *const u8 = core::ptr::null();
+	let wild = wild.as_bytes();
+	let path = str.as_bytes();
 
-		let (mut wild, wild_max) = (wild.as_ptr(), wild.as_ptr().add(wild.len()));
-		let (mut str, str_max) = (str.as_ptr(), str.as_ptr().add(str.len()));
+	let mut w = 0usize;
+	let mut s = 0usize;
+	let mut star_w: Option<usize> = None;
+	let mut star_s = 0usize;
 
-		while wild < wild_max && str < str_max && *wild != WILD_BYTE {
-			if *wild != *str && *wild != QUESTION_BYTE {
-				return false;
-			}
-			wild = wild.add(1);
-			str = str.add(1);
+	while s < path.len() {
+		if w < wild.len() && wild[w] == WILD_BYTE {
+			star_w = Some(w);
+			star_s = s;
+			w += 1;
+		} else if w < wild.len() && (wild[w] == QUESTION_BYTE || wild[w] == path[s]) {
+			w += 1;
+			s += 1;
+		} else if let Some(sw) = star_w {
+			w = sw + 1;
+			star_s += 1;
+			s = star_s;
+		} else {
+			return false;
 		}
-
-		while str < str_max {
-			if *wild == WILD_BYTE {
-				wild = wild.add(1);
-				if wild >= wild_max {
-					return true;
-				}
-				mp = wild;
-				cp = str.add(1);
-			} else if *wild == *str || *wild == QUESTION_BYTE {
-				wild = wild.add(1);
-				str = str.add(1);
-			} else {
-				wild = mp;
-				str = cp;
-				cp = cp.add(1);
-			}
-		}
-
-		while wild < wild_max && *wild == WILD_BYTE {
-			wild = wild.add(1);
-		}
-
-		wild >= wild_max
 	}
+
+	while w < wild.len() && wild[w] == WILD_BYTE {
+		w += 1;
+	}
+
+	w == wild.len()
 }
 
 /// Check if a path is allowed in a GMA file
@@ -293,12 +284,14 @@ fn test_whitelist() {
 		assert!(check(good), "{}", good);
 	}
 
-	for good in ADDON_WHITELIST.iter() {
-		assert!(check(good.replace('*', "test").strip_suffix('\0').unwrap()));
+	for glob in ADDON_WHITELIST.iter().filter(|g| !g.starts_with('!')) {
+		let path = glob.replace('*', "test");
+		assert!(check(&path), "{}", path);
 	}
 
-	for good in ADDON_WHITELIST.iter() {
-		assert!(check(good.replace('*', "a").strip_suffix('\0').unwrap()));
+	for glob in ADDON_WHITELIST.iter().filter(|g| !g.starts_with('!')) {
+		let path = glob.replace('*', "a");
+		assert!(check(&path), "{}", path);
 	}
 
 	for bad in bad {
@@ -336,9 +329,9 @@ fn test_ignore() {
 		assert!(is_ignored(ignored, &default_ignore));
 	}
 
-	assert!(is_ignored("lol.txt", &["lol.txt\0".to_string()]));
-	assert!(is_ignored("lua/hello.lua", &["lua/*.lua\0".to_string()]));
-	assert!(is_ignored("lua/hello.lua", &["lua/*\0".to_string()]));
+	assert!(is_ignored("lol.txt", &["lol.txt".to_string()]));
+	assert!(is_ignored("lua/hello.lua", &["lua/*.lua".to_string()]));
+	assert!(is_ignored("lua/hello.lua", &["lua/*".to_string()]));
 	assert!(!is_ignored("lol.txt", &[]));
 }
 
@@ -361,4 +354,21 @@ fn test_exclusions() {
 	assert!(check("gamemodes/sandbox/sandbox.fgd"));
 	assert!(!check("gamemodes/sandbox/nested/info.txt"));
 	assert!(!check("gamemodes/sandbox/entities/weapons/info.txt"));
+}
+
+#[test]
+fn test_globber_no_oob() {
+	assert!(!globber("LICENSE", "LICENSE.bak"));
+	assert!(!globber(".gitignore", ".gitignore.bak"));
+	assert!(!globber("addon.json", "addon.json.bak"));
+	assert!(!globber("a", "abcdef"));
+	assert!(globber("LICENSE", "LICENSE"));
+
+	assert!(filter_default_ignored(".gitignore.bak"));
+	assert!(filter_default_ignored("thumbs.db.bak"));
+	assert!(!filter_default_ignored(".gitignore"));
+	assert!(!filter_default_ignored("thumbs.db"));
+
+	assert!(!is_ignored("LICENSE.bak", &["LICENSE".to_string()]));
+	assert!(is_ignored("LICENSE", &["LICENSE".to_string()]));
 }
