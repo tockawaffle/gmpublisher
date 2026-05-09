@@ -165,7 +165,7 @@
 	"ERR_UNKNOWN": "Erreur inconnue",
 	"ERR_NO_ADDONS_FOUND": "Aucun addon trouvé",
 	"ERR_STEAM_ERROR": "Erreur Steam : {data}",
-	"ERR_WHITELIST": "Ces entrées ne respectent pas la liste blanche des types de fichiers. Vérifiez la structure de votre addon ou ajoutez ces fichiers aux modèles ignorés.\n\n{data}",
+	"ERR_WHITELIST": "Ces entrées ne respectent pas la liste blanche des types et emplacements de fichiers. Si c'est inattendu, votre addon a probablement une structure de fichiers incorrecte.\n\nSi vous souhaitez filtrer ces types de fichiers de vos GMAs, ajoutez-les aux Modèles de fichiers ignorés.\n\n{data}",
 	"ERR_IO_ERROR": "Erreur E/S",
 	"ERR_PATH_IO_ERROR": "Erreur E/S ({data})",
 	"ERR_GMA_FORMAT_ERROR": "Fichier GMA corrompu",
