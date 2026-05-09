@@ -16,6 +16,24 @@ macro_rules! safe_read {
 	};
 }
 
+fn is_unsafe_entry_path(path: &str) -> bool {
+	if path.is_empty() {
+		return true;
+	}
+	if path.bytes().any(|b| b == 0 || b == b':') {
+		return true;
+	}
+	if path.starts_with('/') || path.starts_with('\\') {
+		return true;
+	}
+	for segment in path.split(|c| c == '/' || c == '\\') {
+		if segment.is_empty() || segment == "." || segment == ".." {
+			return true;
+		}
+	}
+	false
+}
+
 pub enum GMAReader {
 	MemBuffer(Cursor<ArcBytes>),
 	Disk(BufReader<File>),
@@ -120,33 +138,15 @@ impl GMAFile {
 				let size = handle.read_i64::<LittleEndian>()? as u64;
 				let crc = handle.read_u32::<LittleEndian>()?;
 
-				// Detect ../ and skip this entry if found to prevent directory traversal attack
-				{
-					let mut dots = 0;
-					for byte in path.as_bytes() {
-						const DOT: u8 = b'.';
-						const FORWARDS_SLASH: u8 = b'/';
-						const BACKWARDS_SLASH: u8 = b'\\';
+				let next_cursor = match (entry_cursor as u64).checked_add(size as u64) {
+					None => return Err(GMAError::FormatError),
+					Some(next_cursor) => next_cursor,
+				};
 
-						match *byte {
-							DOT => {
-								if dots == 2 {
-									dots = 0;
-								} else {
-									dots += 1;
-								}
-							}
-							FORWARDS_SLASH | BACKWARDS_SLASH => {
-								if dots == 2 {
-									eprintln!("Illegal GMA entry: {}", path);
-									continue 'read_entries;
-								} else {
-									dots = 0;
-								}
-							}
-							_ => dots = 0,
-						}
-					}
+				if is_unsafe_entry_path(&path) {
+					eprintln!("Illegal GMA entry: {}", path);
+					entry_cursor = next_cursor;
+					continue 'read_entries;
 				}
 
 				let entry = GMAEntry {
@@ -156,10 +156,7 @@ impl GMAFile {
 					index: entry_cursor,
 				};
 
-				entry_cursor = match entry_cursor.checked_add(size) {
-					None => return Err(GMAError::FormatError),
-					Some(entry_cursor) => entry_cursor,
-				};
+				entry_cursor = next_cursor;
 
 				entries.insert(path, entry);
 			}
