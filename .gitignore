@@ -27,3 +27,5 @@ dist-ssr
 /public/dist/
 /src-tauri/target/
 WixTools/
+
+vite.config.js.*
