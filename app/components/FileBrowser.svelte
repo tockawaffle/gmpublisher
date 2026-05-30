@@ -19,7 +19,7 @@
 	let browsing;
 	let total_files = 0;
 	let entries = {
-		dirs: {},
+		dirs: Object.create(null),
 		files: [],
 		path: '',
 	};
@@ -28,7 +28,7 @@
 		browsing = undefined;
 		total_files = 0;
 		entries = {
-			dirs: {},
+			dirs: Object.create(null),
 			files: [],
 			path: '',
 		};
@@ -44,7 +44,7 @@
 
 				if (!(component in path.dirs))
 					path.dirs[component] = {
-						dirs: { '../': path },
+						dirs: Object.assign(Object.create(null), { '../': path }),
 						files: [],
 						path: path_str
 					};
