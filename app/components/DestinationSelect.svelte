@@ -3,9 +3,9 @@
 	import { _ } from 'svelte-i18n';
 	import { tippy } from '../tippy.js';
 	import { Folder, Download, FolderAdd } from 'akar-icons-svelte';
-	import { invoke } from '@tauri-apps/api/tauri';
+	import { invoke } from '@tauri-apps/api/core';
 	import Modal from './Modal.svelte';
-	import * as dialog from '@tauri-apps/api/dialog';
+	import { open } from '@tauri-apps/plugin-dialog';
 	import GmodLogo from './GmodLogo.svelte';
 
 	export let active;
@@ -87,7 +87,7 @@
 		if ('browse' === extractPath[0]) {
 			extractPath = [null, null, AppSettings.create_folder_on_extract];
 		} else {
-			dialog.open({
+			open({
 				defaultPath: AppSettings.destinations[0],
 				directory: true,
 			}).then(path => {

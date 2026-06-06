@@ -305,44 +305,40 @@ const PATH_SEPARATOR: char = '\\';
 #[cfg(not(target_os = "windows"))]
 const PATH_SEPARATOR: char = '/';
 
-pub struct Plugin;
-impl<R: tauri::Runtime> tauri::plugin::Plugin<R> for Plugin {
-	fn initialization_script(&self) -> Option<String> {
-		let mut sanitized = app_data!().settings.read().clone();
-		sanitized.sanitize();
-		*app_data!().settings.write() = sanitized;
+fn appdata_init_script() -> String {
+	let mut sanitized = app_data!().settings.read().clone();
+	sanitized.sanitize();
+	*app_data!().settings.write() = sanitized;
 
-		let mut default_ignore: Vec<String> = crate::gma::DEFAULT_IGNORE.iter().map(|x| x.to_string()).collect();
-		default_ignore.sort();
+	let mut default_ignore: Vec<String> = crate::gma::DEFAULT_IGNORE.iter().map(|x| x.to_string()).collect();
+	default_ignore.sort();
 
-		app_data!().open_count.increment();
+	app_data!().open_count.increment();
 
-		Some(
-			include_str!("../../app/plugins/AppData.js")
-				.replacen(
-					"{$_APP_DATA_$}",
-					&crate::escape_single_quoted_json(serde_json::ser::to_string(&*crate::APP_DATA).unwrap()),
-					1,
-				)
-				.replacen(
-					"{$_WS_DEAD_$}",
-					&crate::escape_single_quoted_json(
-						serde_json::ser::to_string(&crate::WorkshopItem::from(steamworks::PublishedFileId(0))).unwrap(),
-					),
-					1,
-				)
-				.replacen(
-					"{$_DEFAULT_IGNORE_GLOBS_$}",
-					&crate::escape_single_quoted_json(serde_json::ser::to_string(&default_ignore).unwrap()),
-					1,
-				)
-				.replacen("{$_PATH_SEPARATOR_$}", &serde_json::ser::to_string(&PATH_SEPARATOR).unwrap(), 1),
+	include_str!("../../app/plugins/AppData.js")
+		.replacen(
+			"{$_APP_DATA_$}",
+			&crate::escape_single_quoted_json(serde_json::ser::to_string(&*crate::APP_DATA).unwrap()),
+			1,
 		)
-	}
+		.replacen(
+			"{$_WS_DEAD_$}",
+			&crate::escape_single_quoted_json(
+				serde_json::ser::to_string(&crate::WorkshopItem::from(steamworks::PublishedFileId(0))).unwrap(),
+			),
+			1,
+		)
+		.replacen(
+			"{$_DEFAULT_IGNORE_GLOBS_$}",
+			&crate::escape_single_quoted_json(serde_json::ser::to_string(&default_ignore).unwrap()),
+			1,
+		)
+		.replacen("{$_PATH_SEPARATOR_$}", &serde_json::ser::to_string(&PATH_SEPARATOR).unwrap(), 1)
+}
 
-	fn name(&self) -> &'static str {
-		"AppData"
-	}
+pub fn appdata_plugin<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
+	let script = appdata_init_script();
+	tauri::plugin::Builder::new("appdata").js_init_script(script).build()
 }
 
 #[tauri::command]
@@ -373,7 +369,7 @@ pub fn validate_gmod(mut path: PathBuf) -> bool {
 }
 
 #[tauri::command]
-pub fn window_resized(window: tauri::Window, width: f64, height: f64) {
+pub fn window_resized(window: tauri::WebviewWindow, width: f64, height: f64) {
 	{
 		let mut settings = app_data!().settings.write();
 

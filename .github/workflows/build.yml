@@ -19,7 +19,7 @@ jobs:
       run: |
         echo "deb http://archive.ubuntu.com/ubuntu jammy main universe" | sudo tee -a /etc/apt/sources.list
         sudo apt update
-        sudo apt install -y libwebkit2gtk-4.0-dev \
+        sudo apt install -y libwebkit2gtk-4.1-dev \
             build-essential \
             curl \
             wget \
@@ -40,7 +40,7 @@ jobs:
       run: |
         cd src-tauri/target/release
 
-        for lib in libwebkit2gtk-* libjavascriptcoregtk-*; do
+        for lib in libwebkit2gtk-4.1-* libjavascriptcoregtk-4.1-*; do
           for path in $(ldd gmpublisher | awk '{print $3}' | grep "$lib"); do
             cp -v "$path" .
           done
@@ -48,7 +48,7 @@ jobs:
 
         patchelf --set-rpath '$ORIGIN' gmpublisher
 
-        zip -r gmpublisher_linux64.zip gmpublisher libsteam_api.so libwebkit2gtk-* libjavascriptcoregtk-*
+        zip -r gmpublisher_linux64.zip gmpublisher libsteam_api.so libwebkit2gtk-4.1-* libjavascriptcoregtk-4.1-*
 
     - name: Release
       uses: softprops/action-gh-release@v1

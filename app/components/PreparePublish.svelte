@@ -8,8 +8,8 @@
 	import Modal from '../components/Modal.svelte';
 	import { CloudUpload, Cross, Folder, LinkOut } from 'akar-icons-svelte';
 	import { tippyFollow, tippy } from '../tippy';
-	import * as dialog from '@tauri-apps/api/dialog';
-	import { invoke } from '@tauri-apps/api/tauri';
+	import { open as openDialog } from '@tauri-apps/plugin-dialog';
+	import { invoke } from '@tauri-apps/api/core';
 	import { playSound } from '../sounds';
 	import FileBrowser from './FileBrowser.svelte';
 	import { writable } from 'svelte/store';
@@ -47,7 +47,7 @@
 	let pathValue = '';
 	let pathFailMessage = null;
 	function browseAddon() {
-		dialog.open({ directory: true }).then(path => {
+		openDialog({ directory: true }).then(path => {
 			if (path && path.length > 0) {
 				checkPath(path);
 			}
@@ -55,7 +55,7 @@
 	}
 
 	function browseIcon() {
-		dialog.open({
+		openDialog({
 
 			filters: [{
 				extensions: ['jpg', 'jpeg', 'png', 'gif'],

@@ -52,7 +52,7 @@ macro_rules! webview {
 #[macro_export]
 macro_rules! webview_emit {
 	( $event:expr, $data:expr ) => {
-		crate::webview!().emit($event, Some($data))
+		crate::webview!().emit($event, $data)
 	};
 
 	( $event:expr ) => {

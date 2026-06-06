@@ -1,8 +1,8 @@
 <script>
 	import { Folder } from "akar-icons-svelte";
 	import Switch from "./Switch.svelte";
-	import * as dialog from '@tauri-apps/api/dialog';
-	import { invoke } from '@tauri-apps/api/tauri';
+	import { open } from '@tauri-apps/plugin-dialog';
+	import { invoke } from '@tauri-apps/api/core';
 	import { playSound } from "../sounds";
 	import { _ } from "svelte-i18n";
 	import { tippy } from '../tippy';
@@ -34,7 +34,7 @@
 	function browse() {
 		const input = this.parentNode.querySelector(':scope > input');
 
-		dialog.open({
+		open({
 			defaultPath: input.value.trim().length > 0 ? input.value : (input.placeholder.length > 0 ? input.placeholder : null),
 			directory: true,
 		}).then(async path => {

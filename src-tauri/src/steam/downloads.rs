@@ -2,7 +2,9 @@ use parking_lot::{Condvar, Mutex, MutexGuard};
 use rayon::ThreadPool;
 
 use std::{
-	collections::HashSet, path::PathBuf, sync::{atomic::AtomicBool, Arc}
+	collections::HashSet,
+	path::PathBuf,
+	sync::{atomic::AtomicBool, Arc},
 };
 
 use steamworks::{ClientManager, ItemState, PublishedFileId, QueryResults, UGC};

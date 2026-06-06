@@ -1,46 +1,83 @@
 <h1 align="center"><a href="https://github.com/WilliamVenner/gmpublisher/releases">Download</a></h1>
 
-<p align="center"><!--<img src="https://user-images.githubusercontent.com/14863743/115953578-41e5a580-a4e4-11eb-84d9-45b296f9e18d.png" alt="Logo"/><br/><br/>--><img src="https://github.com/WilliamVenner/gmpublisher/assets/14863743/8c514124-7f63-4d20-b6c6-25989c9bf528"/></p>
+<p align="center"><img src="https://github.com/WilliamVenner/gmpublisher/assets/14863743/8c514124-7f63-4d20-b6c6-25989c9bf528"/></p>
 
-# ⚙️ gmpublisher
+# gmpublisher
 
-A powerful and feature-packed Workshop publisher for Garry's Mod is finally here!
+A Workshop publishing utility for Garry's Mod — publish, update, browse, extract, and manage addons without `gmad.exe` or `gmpublish.exe`.
 
-[Click for downloads](https://github.com/WilliamVenner/gmpublisher/releases)
+[Download releases](https://github.com/WilliamVenner/gmpublisher/releases)
 
-###### Are you a developer? You may also like my [VSCode GLua Enhanced](https://github.com/WilliamVenner/vscode-glua-enhanced) extension!
+> **Stability warning — read this first**
+>
+> gmpublisher has recently been migrated from **Tauri v1 to Tauri v2**. This was a large internal upgrade touching the Rust backend, permissions model, packaging, and minimal frontend API bindings.
+>
+> **Do not trust the stability of current builds.** Expect crashes, broken dialogs, permission errors, platform-specific packaging issues, and regressions in features that previously worked. Treat every release from this migration onward as experimental until it has been thoroughly tested on your platform.
+>
+> If you depend on gmpublisher for production publishing workflows, stay on the last pre-migration release until newer builds have been validated for your use case. Report issues on GitHub with your OS, version, and steps to reproduce.
 
-## 📦 Installation
+###### Are you a developer? You may also like [VSCode GLua Enhanced](https://github.com/WilliamVenner/vscode-glua-enhanced).
+
+## Tauri v2 upgrade
+
+Recent versions run on [Tauri 2](https://v2.tauri.app/) instead of Tauri 1. Notable changes:
+
+- **Desktop shell:** Tauri 2 with a Rust `lib.rs` entry point, capabilities-based permissions, and the dialog plugin for native file pickers.
+- **Linux:** Requires **WebKitGTK 4.1** (`libwebkit2gtk-4.1-dev` when building; `webkit2gtk-4.1` on Arch). CI bundles updated accordingly.
+- **Frontend:** Minimal API import changes only (`@tauri-apps/api/core`, `@tauri-apps/plugin-dialog`). No intentional UI redesign.
+- **Windows / macOS:** MSI and universal macOS builds need re-validation after the migration. Do not assume installers behave identically to Tauri 1 builds.
+
+The migration guide used as reference: [Upgrade from Tauri 1.0](https://v2.tauri.app/start/migrate/from-tauri-1/).
+
+## Installation
 
 ### Windows and macOS
 
-The easiest way to install is by downloading gmpublisher from the [releases page](https://github.com/WilliamVenner/gmpublisher/releases).
+Download the latest build from the [releases page](https://github.com/WilliamVenner/gmpublisher/releases). Verify it works for your workflow before relying on it — see the stability warning above.
 
 ### Linux
 
-You can usually use the provided ZIP file from the [releases page](https://github.com/WilliamVenner/gmpublisher/releases).
+Use the ZIP from the [releases page](https://github.com/WilliamVenner/gmpublisher/releases), or install from the AUR:
 
-* **Arch Linux** users can install the application from the AUR via the package [`gmpublisher-bin`](https://aur.archlinux.org/packages/gmpublisher-bin).
-* *Note: Other Linux users may need to install additional dependencies.*
+- **Arch Linux:** [`gmpublisher-bin`](https://aur.archlinux.org/packages/gmpublisher-bin) (depends on `webkit2gtk-4.1`)
+
+Other distributions may need additional WebKit/GTK dependencies. Again: treat post-migration builds as untrusted until you have tested them locally.
+
+## Building from source
+
+Prerequisites: [Node.js](https://nodejs.org/), [Rust](https://www.rust-lang.org/) (see `src-tauri/rust-toolchain.toml`), and platform Tauri dependencies.
+
+**Linux (Debian/Ubuntu-based):**
+
+```sh
+sudo apt install libwebkit2gtk-4.1-dev build-essential libssl-dev \
+  libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
+```
+
+```sh
+npm install
+npm run tauri dev    # development
+npm run tauri build  # production binary / bundle
+```
+
+Steam API shared libraries are copied automatically via `src-tauri/copySharedLibs.js` before dev and build.
 
 ## Tutorials
 
-[DanFMN - Fastest Way to Upload a Garry's Mod Addon To Workshop](https://youtu.be/_syLXTFXmgM)
-
-[DarkFated - GMPublisher Guide in Russian](https://youtu.be/ldjHm85AnYk)
+- [DanFMN — Fastest Way to Upload a Garry's Mod Addon To Workshop](https://youtu.be/_syLXTFXmgM)
+- [DarkFated — GMPublisher Guide in Russian](https://youtu.be/ldjHm85AnYk)
 
 ## Features
 
-* Doesn't depend on gmad.exe or gmpublish.exe
-* Publish & update your Workshop items
-* Extract, search and browse GMA files and installed addons
-* Bulk download & extract Workshop items and collections
-* Upload animated GIFs as your Workshop item's icon
-* Analyze which addons are taking up the most disk space using the addon size analyzer treemap
-* Supports legacy SteamPipe addons and old GMA versions
-* Works without an Internet connection
-* CLI interface
-* (Windows) .GMA file type association for quick extraction
+- Publish and update Workshop items without Valve's publish tools
+- Extract, search, and browse GMA files and installed addons
+- Bulk download and extract Workshop items and collections
+- Upload animated GIFs as Workshop item icons
+- Addon size analyzer treemap
+- Legacy SteamPipe addons and old GMA versions
+- Works without an Internet connection (after initial setup)
+- CLI interface
+- (Windows) `.gma` file type association for quick extraction
 
 ## Languages
 
@@ -68,22 +105,20 @@ You can usually use the provided ZIP file from the [releases page](https://githu
 
 ![](https://github.com/Blueberryy/gmpublisher/assets/36592509/319e7681-46c4-4a79-9fdc-99db49bd2ccb) Ukrainian
 
-
-[Want to translate gmpublisher to your language?](https://github.com/WilliamVenner/gmpublisher/tree/master/i18n)
+[Want to translate gmpublisher?](https://github.com/WilliamVenner/gmpublisher/tree/master/i18n)
 
 ## Requirements
 
-Windows, macOS or Linux
+Windows, macOS, or Linux.
 
-Linux users may need to install additional dependencies.
+Linux users need WebKitGTK 4.1 and related GTK dependencies. Post-migration builds have not been battle-tested across all distros.
 
-## Technical Stuff
+## Technical notes
 
-* The program makes heavy use of multithreading, and will work best on processors with a decent amount of cores.
-* Made using [Rust](https://www.rust-lang.org/) (backend) and [Svelte](https://svelte.dev/) (frontend)
-* This is not an Electron app; this is a [Tauri](https://github.com/tauri-apps/tauri) app. Big thanks to all the contributors to Tauri for their amazing work on finally killing Electron for good.
-* gmpublisher uses the fantastic [steamworks-rs](https://crates.io/crates/steamworks) library for interfacing with the [Steamworks SDK](https://partner.steamgames.com/doc/api)
-* The program is only about ~10 MB
+- Heavy use of multithreading; benefits from multi-core CPUs
+- **Rust** backend, **Svelte** frontend, **[Tauri 2](https://v2.tauri.app/)** desktop shell (not Electron)
+- [steamworks-rs](https://crates.io/crates/steamworks) for Steamworks SDK integration
+- Release binary is roughly ~10–15 MB depending on platform
 
 ## Media
 

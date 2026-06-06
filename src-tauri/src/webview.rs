@@ -2,14 +2,14 @@ use std::{cell::RefCell, mem::MaybeUninit, sync::atomic::AtomicBool};
 
 use crossbeam::channel::Sender;
 use serde::Serialize;
-use tauri::{Window, Wry};
+use tauri::{Emitter, Runtime, WebviewWindow, plugin::{Builder as PluginBuilder, TauriPlugin}};
 
 use crate::{GMAFile, WorkshopItem};
 
 pub struct WrappedWebview {
-	pub window: RefCell<MaybeUninit<Window<Wry>>>,
+	pub window: RefCell<MaybeUninit<WebviewWindow>>,
 	pending: AtomicBool,
-	tx: Sender<Window<Wry>>,
+	tx: Sender<WebviewWindow>,
 }
 unsafe impl Send for WrappedWebview {}
 unsafe impl Sync for WrappedWebview {}
@@ -22,7 +22,7 @@ impl WrappedWebview {
 		}
 	}
 
-	fn channel() -> Sender<Window<Wry>> {
+	fn channel() -> Sender<WebviewWindow> {
 		let (tx, rx) = crossbeam::channel::bounded(1);
 
 		std::thread::spawn(move || {
@@ -34,15 +34,15 @@ impl WrappedWebview {
 		tx
 	}
 
-	pub fn init(&self, window: Window<Wry>) {
+	pub fn init(&self, window: WebviewWindow) {
 		self.tx.send(window).unwrap();
 	}
 
-	pub fn emit<D: Serialize + Send + 'static>(&self, event: &'static str, payload: Option<D>) {
-		ignore! { self.window().emit(event, &payload) };
+	pub fn emit<D: Serialize + Clone + Send + 'static>(&self, event: &'static str, payload: D) {
+		ignore! { self.window().emit(event, payload) };
 	}
 
-	pub fn window(&self) -> &Window<Wry> {
+	pub fn window(&self) -> &WebviewWindow {
 		while self.pending.load(std::sync::atomic::Ordering::Relaxed) {
 			sleep_ms!(50);
 		}
@@ -142,19 +142,13 @@ impl PartialEq for Addon {
 }
 impl Eq for Addon {}
 
-pub struct ErrorReporter;
-impl<R: tauri::Runtime> tauri::plugin::Plugin<R> for ErrorReporter {
-	fn initialization_script(&self) -> Option<String> {
-		Some(include_str!("../../app/plugins/ErrorReporter.js").replacen(
-			"{$_DEBUG_MODE_$}",
-			if cfg!(debug_assertions) { "true" } else { "false" },
-			1,
-		))
-	}
-
-	fn name(&self) -> &'static str {
-		"ErrorReporter"
-	}
+pub fn error_reporter_plugin<R: Runtime>() -> TauriPlugin<R> {
+	let script = include_str!("../../app/plugins/ErrorReporter.js").replacen(
+		"{$_DEBUG_MODE_$}",
+		if cfg!(debug_assertions) { "true" } else { "false" },
+		1,
+	);
+	PluginBuilder::new("error-reporter").js_init_script(script).build()
 }
 
 #[tauri::command]

@@ -3,6 +3,7 @@ use std::{
 	fmt::Debug,
 	path::{Path, PathBuf},
 };
+use tauri::Manager;
 
 pub fn canonicalize(path: PathBuf) -> PathBuf {
 	dunce::canonicalize(path.clone()).unwrap_or(path)
@@ -139,7 +140,14 @@ pub fn has_extension<P: AsRef<Path>, S: AsRef<str>>(path: P, extension: S) -> bo
 pub fn open<P: AsRef<Path>>(path: P) {
 	let path = path.as_ref();
 	if opener::open(path).is_err() {
-		tauri::api::dialog::message(None::<&tauri::Window<tauri::Wry>>, "File", path.to_string_lossy());
+		use tauri_plugin_dialog::DialogExt;
+		let _ = webview!()
+			.window()
+			.app_handle()
+			.dialog()
+			.message(path.to_string_lossy().to_string())
+			.title("File")
+			.blocking_show();
 	}
 }
 
@@ -186,6 +194,13 @@ pub fn open_file_location<P: AsRef<Path>>(path: P) {
 		#[allow(unreachable_code)]
 		Err(std::io::Error::new(std::io::ErrorKind::Other, "Unsupported OS"))
 	})() {
-		tauri::api::dialog::message(None::<&tauri::Window<tauri::Wry>>, "File Location", path.display().to_string());
+		use tauri_plugin_dialog::DialogExt;
+		let _ = webview!()
+			.window()
+			.app_handle()
+			.dialog()
+			.message(path.display().to_string())
+			.title("File Location")
+			.blocking_show();
 	}
 }
